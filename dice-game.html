@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎲 Juego de Dados - Loyalty Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .restaurant-name {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .dice-container {
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .dice {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4em;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+            cursor: pointer;
+        }
+
+        .dice:hover {
+            transform: scale(1.05);
+        }
+
+        .dice.rolling {
+            animation: roll 0.5s ease-in-out;
+        }
+
+        @keyframes roll {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg) scale(1.1); }
+            50% { transform: rotate(180deg) scale(0.9); }
+            75% { transform: rotate(270deg) scale(1.1); }
+        }
+
+        .roll-button {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            border-radius: 50px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+            transition: all 0.3s;
+            margin: 20px 0;
+        }
+
+        .roll-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(245, 87, 108, 0.6);
+        }
+
+        .roll-button:active {
+            transform: translateY(0);
+        }
+
+        .roll-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .prize-container {
+            margin-top: 30px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .prize {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 25px;
+            border-radius: 20px;
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #333;
+            margin-top: 20px;
+            animation: prizeAppear 0.5s ease-out;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .prize.big-win {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            animation: bigWin 1s ease-out;
+        }
+
+        @keyframes prizeAppear {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes bigWin {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.1) rotate(5deg); }
+            75% { transform: scale(1.1) rotate(-5deg); }
+        }
+
+        .prize-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f0f;
+            position: absolute;
+            animation: confetti-fall 3s linear;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎲 ¡Tira el Dado!</h1>
+        <p class="subtitle">Gana premios increíbles con cada compra</p>
+        
+        <div class="restaurant-name">
+            🍕 Restaurante Demo
+        </div>
+
+        <div class="dice-container">
+            <div class="dice" id="dice">
+                <span id="diceNumber">?</span>
+            </div>
+        </div>
+
+        <button class="roll-button" id="rollButton" onclick="rollDice()">
+            ¡TIRAR DADO!
+        </button>
+
+        <div class="prize-container" id="prizeContainer">
+            <p style="color: #999;">Tira el dado para descubrir tu premio...</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="rollCount">0</div>
+                <div class="stat-label">Tiradas</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="prizeCount">0</div>
+                <div class="stat-label">Premios Ganados</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let rollCount = 0;
+        let prizeCount = 0;
+
+        const prizes = {
+            1: { text: '5% de Descuento', icon: '💰', isBig: false },
+            2: { text: '10% de Descuento', icon: '🎉', isBig: false },
+            3: { text: 'Bebida Gratis', icon: '🥤', isBig: false },
+            4: { text: '15% de Descuento', icon: '🎊', isBig: false },
+            5: { text: 'Postre Gratis', icon: '🍰', isBig: true },
+            6: { text: '¡COMBO GRATIS!', icon: '🏆', isBig: true }
+        };
+
+        function rollDice() {
+            const dice = document.getElementById('dice');
+            const diceNumber = document.getElementById('diceNumber');
+            const rollButton = document.getElementById('rollButton');
+            const prizeContainer = document.getElementById('prizeContainer');
+
+            // Deshabilitar botón durante la animación
+            rollButton.disabled = true;
+            rollButton.textContent = 'Tirando...';
+
+            // Limpiar premio anterior
+            prizeContainer.innerHTML = '';
+
+            // Agregar clase de animación
+            dice.classList.add('rolling');
+
+            // Animación de números aleatorios
+            let counter = 0;
+            const interval = setInterval(() => {
+                diceNumber.textContent = Math.floor(Math.random() * 6) + 1;
+                counter++;
+                if (counter > 8) {
+                    clearInterval(interval);
+                }
+            }, 100);
+
+            // Después de 1 segundo, mostrar resultado final
+            setTimeout(() => {
+                const finalNumber = Math.floor(Math.random() * 6) + 1;
+                diceNumber.textContent = finalNumber;
+                dice.classList.remove('rolling');
+
+                // Mostrar premio
+                const prize = prizes[finalNumber];
+                const prizeDiv = document.createElement('div');
+                prizeDiv.className = 'prize' + (prize.isBig ? ' big-win' : '');
+                prizeDiv.innerHTML = `
+                    <div class="prize-icon">${prize.icon}</div>
+                    <div>${prize.text}</div>
+                `;
+                prizeContainer.appendChild(prizeDiv);
+
+                // Actualizar estadísticas
+                rollCount++;
+                prizeCount++;
+                document.getElementById('rollCount').textContent = rollCount;
+                document.getElementById('prizeCount').textContent = prizeCount;
+
+                // Confetti para premios grandes
+                if (prize.isBig) {
+                    createConfetti();
+                }
+
+                // Rehabilitar botón
+                rollButton.disabled = false;
+                rollButton.textContent = '¡TIRAR DE NUEVO!';
+            }, 1000);
+        }
+
+        function createConfetti() {
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'fixed';
+                    confetti.style.left = Math.random() * window.innerWidth + 'px';
+                    confetti.style.top = '-10px';
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animation = 'confetti-fall 3s linear forwards';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+    </script>
+</body>
+</html>

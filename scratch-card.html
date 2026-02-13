@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎟️ Raspa y Gana - Loyalty Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #f5576c;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .restaurant-name {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .scratch-container {
+            position: relative;
+            margin: 30px auto;
+            width: 350px;
+            height: 250px;
+        }
+
+        .prize-background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .prize-icon {
+            font-size: 4em;
+            margin-bottom: 10px;
+        }
+
+        .prize-text {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.5);
+        }
+
+        #scratchCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: crosshair;
+            border-radius: 20px;
+        }
+
+        .instructions {
+            margin: 20px 0;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .reset-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .reset-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        .reset-button:active {
+            transform: translateY(0);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #eee;
+            border-radius: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #f5576c;
+        }
+
+        .stat-label {
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .revealed {
+            animation: revealPrize 0.5s ease-out;
+        }
+
+        @keyframes revealPrize {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎟️ Raspa y Gana</h1>
+        <p class="subtitle">¡Raspa para descubrir tu premio!</p>
+        
+        <div class="restaurant-name">
+            🍕 Restaurante Demo
+        </div>
+
+        <p class="instructions">
+            👆 Usa tu dedo o mouse para raspar la tarjeta
+        </p>
+
+        <div class="scratch-container">
+            <div class="prize-background" id="prizeBackground">
+                <div class="prize-icon" id="prizeIcon">🎁</div>
+                <div class="prize-text" id="prizeText">Cargando...</div>
+            </div>
+            <canvas id="scratchCanvas" width="350" height="250"></canvas>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <p style="color: #999; margin-top: 10px; font-size: 0.9em;">
+            Progreso: <span id="progressText">0%</span>
+        </p>
+
+        <button class="reset-button" onclick="resetCard()">
+            🔄 Nueva Tarjeta
+        </button>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="cardCount">0</div>
+                <div class="stat-label">Tarjetas Raspadas</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="prizeCount">0</div>
+                <div class="stat-label">Premios Ganados</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('scratchCanvas');
+        const ctx = canvas.getContext('2d');
+        let isScratching = false;
+        let scratchedPercentage = 0;
+        let cardCount = 0;
+        let prizeCount = 0;
+        let revealed = false;
+
+        const prizes = [
+            { text: 'Sin Premio 😢', icon: '😢', isWin: false },
+            { text: 'Sin Premio 😢', icon: '😢', isWin: false },
+            { text: '5% Descuento', icon: '💰', isWin: true },
+            { text: '10% Descuento', icon: '🎉', isWin: true },
+            { text: 'Bebida Gratis', icon: '🥤', isWin: true },
+            { text: '15% Descuento', icon: '🎊', isWin: true },
+            { text: 'Postre Gratis', icon: '🍰', isWin: true },
+            { text: '¡COMBO GRATIS!', icon: '🏆', isWin: true },
+            { text: '2x1 en Platos', icon: '🍽️', isWin: true },
+            { text: '20% Descuento', icon: '💎', isWin: true }
+        ];
+
+        function initCanvas() {
+            // Fondo plateado de raspar
+            const gradient = ctx.createLinearGradient(0, 0, 350, 250);
+            gradient.addColorStop(0, '#c0c0c0');
+            gradient.addColorStop(0.5, '#e0e0e0');
+            gradient.addColorStop(1, '#c0c0c0');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 350, 250);
+
+            // Texto "RASPA AQUÍ"
+            ctx.fillStyle = '#888';
+            ctx.font = 'bold 30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('RASPA AQUÍ', 175, 125);
+            ctx.font = '20px Arial';
+            ctx.fillText('👆', 175, 160);
+        }
+
+        function selectRandomPrize() {
+            const prize = prizes[Math.floor(Math.random() * prizes.length)];
+            document.getElementById('prizeIcon').textContent = prize.icon;
+            document.getElementById('prizeText').textContent = prize.text;
+            return prize;
+        }
+
+        let currentPrize = selectRandomPrize();
+
+        function scratch(x, y) {
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            ctx.arc(x, y, 20, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function calculateScratchedPercentage() {
+            const imageData = ctx.getImageData(0, 0, 350, 250);
+            const pixels = imageData.data;
+            let transparentPixels = 0;
+
+            for (let i = 3; i < pixels.length; i += 4) {
+                if (pixels[i] < 128) {
+                    transparentPixels++;
+                }
+            }
+
+            scratchedPercentage = (transparentPixels / (350 * 250)) * 100;
+            document.getElementById('progressFill').style.width = scratchedPercentage + '%';
+            document.getElementById('progressText').textContent = Math.round(scratchedPercentage) + '%';
+
+            if (scratchedPercentage > 50 && !revealed) {
+                revealed = true;
+                revealPrize();
+            }
+        }
+
+        function revealPrize() {
+            // Limpiar todo el canvas
+            ctx.clearRect(0, 0, 350, 250);
+            
+            // Animación de revelación
+            const prizeBackground = document.getElementById('prizeBackground');
+            prizeBackground.classList.add('revealed');
+
+            // Actualizar estadísticas
+            cardCount++;
+            if (currentPrize.isWin) {
+                prizeCount++;
+            }
+            document.getElementById('cardCount').textContent = cardCount;
+            document.getElementById('prizeCount').textContent = prizeCount;
+
+            // Confetti si es premio
+            if (currentPrize.isWin) {
+                createConfetti();
+            }
+        }
+
+        function createConfetti() {
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'fixed';
+                    confetti.style.left = Math.random() * window.innerWidth + 'px';
+                    confetti.style.top = '-10px';
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animation = 'confetti-fall 3s linear forwards';
+                    confetti.style.borderRadius = '50%';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+
+        function resetCard() {
+            ctx.clearRect(0, 0, 350, 250);
+            initCanvas();
+            scratchedPercentage = 0;
+            revealed = false;
+            currentPrize = selectRandomPrize();
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('progressText').textContent = '0%';
+            document.getElementById('prizeBackground').classList.remove('revealed');
+        }
+
+        // Event listeners
+        canvas.addEventListener('mousedown', (e) => {
+            isScratching = true;
+            const rect = canvas.getBoundingClientRect();
+            scratch(e.clientX - rect.left, e.clientY - rect.top);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isScratching) {
+                const rect = canvas.getBoundingClientRect();
+                scratch(e.clientX - rect.left, e.clientY - rect.top);
+                calculateScratchedPercentage();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isScratching = false;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isScratching = false;
+        });
+
+        // Touch events para móvil
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isScratching = true;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            scratch(touch.clientX - rect.left, touch.clientY - rect.top);
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (isScratching) {
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                scratch(touch.clientX - rect.left, touch.clientY - rect.top);
+                calculateScratchedPercentage();
+            }
+        });
+
+        canvas.addEventListener('touchend', () => {
+            isScratching = false;
+        });
+
+        // Animación de confetti CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes confetti-fall {
+                to {
+                    transform: translateY(100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Inicializar
+        initCanvas();
+    </script>
+</body>
+</html>

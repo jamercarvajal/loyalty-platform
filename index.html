@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Loyalty Platform - Juegos de Fidelización</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 50px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 3em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 50px;
+            font-size: 1.3em;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .game-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 20px;
+            padding: 40px 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-decoration: none;
+            display: block;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .game-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+        }
+
+        .game-title {
+            color: white;
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .game-desc {
+            color: rgba(255,255,255,0.9);
+            font-size: 1em;
+        }
+
+        .demo-badge {
+            background: #FFD700;
+            color: #333;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 30px;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="demo-badge">🚀 DEMO VERSION</div>
+        <h1>🎮 Loyalty Platform</h1>
+        <p class="subtitle">Plataforma de Fidelización Gamificada para Restaurantes</p>
+
+        <div class="games-grid">
+            <a href="dice-game.html" class="game-card">
+                <div class="game-icon">🎲</div>
+                <div class="game-title">Tirar Dados</div>
+                <div class="game-desc">Gira el dado y gana premios instantáneos</div>
+            </a>
+
+            <a href="scratch-card.html" class="game-card">
+                <div class="game-icon">🎟️</div>
+                <div class="game-title">Raspa y Gana</div>
+                <div class="game-desc">Raspa la tarjeta y descubre tu premio</div>
+            </a>
+
+            <a href="prize-wheel.html" class="game-card">
+                <div class="game-icon">🎡</div>
+                <div class="game-title">Ruleta de Premios</div>
+                <div class="game-desc">Gira la ruleta de la fortuna</div>
+            </a>
+        </div>
+
+        <footer>
+            <p>💼 Desarrollado con IA • 🇨🇴 Hecho en Colombia</p>
+        </footer>
+    </div>
+</body>
+</html>
