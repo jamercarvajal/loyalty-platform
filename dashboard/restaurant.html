@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍕 Dashboard Restaurante - Loyalty Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .restaurant-name {
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .qr-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(245, 87, 108, 0.6);
+        }
+
+        .generate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .qr-display {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+            padding: 30px;
+            background: #f5f5f5;
+            border-radius: 15px;
+        }
+
+        .qr-display.active {
+            display: block;
+        }
+
+        #qrCanvas {
+            margin: 20px auto;
+            display: block;
+        }
+
+        .qr-code-text {
+            font-family: monospace;
+            font-size: 1.2em;
+            color: #667eea;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+
+        .download-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍕 Dashboard del Restaurante</h1>
+            <p class="restaurant-name" id="restaurantName">Restaurante Demo</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">QR Codes Generados</div>
+                <div class="stat-value" id="qrCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Juegos Jugados Hoy</div>
+                <div class="stat-value" id="gamesCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Premios Otorgados</div>
+                <div class="stat-value" id="prizesCount">0</div>
+            </div>
+        </div>
+
+        <div class="qr-section">
+            <h2>🎲 Generar QR para Cliente</h2>
+            <p style="color: #666; margin: 15px 0;">
+                Genera un código QR único para cada compra. El cliente lo escanea y juega una vez.
+            </p>
+
+            <button class="generate-btn" id="generateBtn" onclick="generateQR()">
+                ✨ Generar Nuevo QR Code
+            </button>
+
+            <div class="qr-display" id="qrDisplay">
+                <h3>✅ QR Code Generado</h3>
+                <canvas id="qrCanvas"></canvas>
+                <div class="qr-code-text" id="qrCodeText"></div>
+                <button class="download-btn" onclick="downloadQR()">📥 Descargar QR</button>
+                <button class="download-btn" onclick="printQR()">🖨️ Imprimir QR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <!-- Firebase -->
+    <script type="module">
+        import { db } from '../js/firebase-config.js';
+        import { collection, addDoc, query, where, getDocs, Timestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        // ID del restaurante (en producción vendría de login)
+        const RESTAURANT_ID = 'demo_restaurant_001';
+
+        // Cargar estadísticas
+        async function loadStats() {
+            try {
+                // Contar QR codes generados
+                const qrQuery = query(collection(db, 'qr_codes'), where('restaurantId', '==', RESTAURANT_ID));
+                const qrSnapshot = await getDocs(qrQuery);
+                document.getElementById('qrCount').textContent = qrSnapshot.size;
+
+                // Contar juegos jugados hoy
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const gamesQuery = query(
+                    collection(db, 'games_played'), 
+                    where('restaurantId', '==', RESTAURANT_ID),
+                    where('timestamp', '>=', Timestamp.fromDate(today))
+                );
+                const gamesSnapshot = await getDocs(gamesQuery);
+                document.getElementById('gamesCount').textContent = gamesSnapshot.size;
+                document.getElementById('prizesCount').textContent = gamesSnapshot.size;
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+            }
+        }
+
+        // Generar QR único
+        window.generateQR = async function() {
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Generando...';
+
+            try {
+                // Generar código único
+                const uniqueCode = 'QR-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                
+                // Guardar en Firebase
+                const docRef = await addDoc(collection(db, 'qr_codes'), {
+                    code: uniqueCode,
+                    restaurantId: RESTAURANT_ID,
+                    usado: false,
+                    fechaCreacion: Timestamp.now(),
+                    fechaUso: null
+                });
+
+                console.log('✅ QR guardado en Firebase:', docRef.id);
+
+                // Mostrar QR
+                displayQR(uniqueCode);
+
+                // Actualizar estadísticas
+                loadStats();
+
+                btn.disabled = false;
+                btn.textContent = '✨ Generar Nuevo QR Code';
+            } catch (error) {
+                console.error('❌ Error generando QR:', error);
+                alert('Error: ' + error.message);
+                btn.disabled = false;
+                btn.textContent = '✨ Generar Nuevo QR Code';
+            }
+        };
+
+        // Mostrar QR en pantalla
+        function displayQR(code) {
+            const qrDisplay = document.getElementById('qrDisplay');
+            const canvas = document.getElementById('qrCanvas');
+            
+            // Limpiar QR anterior
+            canvas.innerHTML = '';
+            
+            // URL del juego con código QR
+            const gameUrl = `${window.location.origin}/games/dice.html?qr=${code}`;
+            
+            // Generar nuevo QR
+            new QRCode(canvas, {
+                text: gameUrl,
+                width: 300,
+                height: 300,
+                colorDark: '#667eea',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('qrCodeText').textContent = code;
+            qrDisplay.classList.add('active');
+
+            // Guardar código para download
+            window.currentQRCode = code;
+            window.currentQRUrl = gameUrl;
+        }
+
+        // Descargar QR
+        window.downloadQR = function() {
+            const canvas = document.querySelector('#qrCanvas canvas');
+            const link = document.createElement('a');
+            link.download = `QR-${window.currentQRCode}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        };
+
+        // Imprimir QR
+        window.printQR = function() {
+            const canvas = document.querySelector('#qrCanvas canvas');
+            const win = window.open('');
+            win.document.write(`
+                <html>
+                <head><title>Imprimir QR</title></head>
+                <body style="text-align: center; padding: 50px;">
+                    <h2>🎮 Loyalty Platform</h2>
+                    <p>Código: ${window.currentQRCode}</p>
+                    <img src="${canvas.toDataURL()}" style="max-width: 400px;">
+                    <p style="margin-top: 20px;">Escanea para jugar y ganar premios</p>
+                </body>
+                </html>
+            `);
+            setTimeout(() => {
+                win.print();
+                win.close();
+            }, 500);
+        };
+
+        // Cargar al inicio
+        loadStats();
+    </script>
+</body>
+</html>
