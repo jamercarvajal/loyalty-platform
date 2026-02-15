@@ -189,135 +189,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <!-- Firebase -->
-    <script type="module">
-        import { db } from '../js/firebase-config.js';
-        import { collection, addDoc, query, where, getDocs, Timestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-
-        // ID del restaurante (en producción vendría de login)
-        const RESTAURANT_ID = 'demo_restaurant_001';
-
-        // Cargar estadísticas
-        async function loadStats() {
-            try {
-                // Contar QR codes generados
-                const qrQuery = query(collection(db, 'qr_codes'), where('restaurantId', '==', RESTAURANT_ID));
-                const qrSnapshot = await getDocs(qrQuery);
-                document.getElementById('qrCount').textContent = qrSnapshot.size;
-
-                // Contar juegos jugados hoy
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const gamesQuery = query(
-                    collection(db, 'games_played'), 
-                    where('restaurantId', '==', RESTAURANT_ID),
-                    where('timestamp', '>=', Timestamp.fromDate(today))
-                );
-                const gamesSnapshot = await getDocs(gamesQuery);
-                document.getElementById('gamesCount').textContent = gamesSnapshot.size;
-                document.getElementById('prizesCount').textContent = gamesSnapshot.size;
-            } catch (error) {
-                console.error('Error cargando estadísticas:', error);
-            }
-        }
-
-        // Generar QR único
-        window.generateQR = async function() {
-            const btn = document.getElementById('generateBtn');
-            btn.disabled = true;
-            btn.textContent = '⏳ Generando...';
-
-            try {
-                // Generar código único
-                const uniqueCode = 'QR-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-                
-                // Guardar en Firebase
-                const docRef = await addDoc(collection(db, 'qr_codes'), {
-                    code: uniqueCode,
-                    restaurantId: RESTAURANT_ID,
-                    usado: false,
-                    fechaCreacion: Timestamp.now(),
-                    fechaUso: null
-                });
-
-                console.log('✅ QR guardado en Firebase:', docRef.id);
-
-                // Mostrar QR
-                displayQR(uniqueCode);
-
-                // Actualizar estadísticas
-                loadStats();
-
-                btn.disabled = false;
-                btn.textContent = '✨ Generar Nuevo QR Code';
-            } catch (error) {
-                console.error('❌ Error generando QR:', error);
-                alert('Error: ' + error.message);
-                btn.disabled = false;
-                btn.textContent = '✨ Generar Nuevo QR Code';
-            }
-        };
-
-        // Mostrar QR en pantalla
-        function displayQR(code) {
-            const qrDisplay = document.getElementById('qrDisplay');
-            const canvas = document.getElementById('qrCanvas');
-            
-            // Limpiar QR anterior
-            canvas.innerHTML = '';
-            
-            // URL del juego con código QR
-            const gameUrl = `${window.location.origin}/games/dice.html?qr=${code}`;
-            
-            // Generar nuevo QR
-            new QRCode(canvas, {
-                text: gameUrl,
-                width: 300,
-                height: 300,
-                colorDark: '#667eea',
-                colorLight: '#ffffff',
-                correctLevel: QRCode.CorrectLevel.H
-            });
-
-            document.getElementById('qrCodeText').textContent = code;
-            qrDisplay.classList.add('active');
-
-            // Guardar código para download
-            window.currentQRCode = code;
-            window.currentQRUrl = gameUrl;
-        }
-
-        // Descargar QR
-        window.downloadQR = function() {
-            const canvas = document.querySelector('#qrCanvas canvas');
-            const link = document.createElement('a');
-            link.download = `QR-${window.currentQRCode}.png`;
-            link.href = canvas.toDataURL();
-            link.click();
-        };
-
-        // Imprimir QR
-        window.printQR = function() {
-            const canvas = document.querySelector('#qrCanvas canvas');
-            const win = window.open('');
-            win.document.write(`
-                <html>
-                <head><title>Imprimir QR</title></head>
-                <body style="text-align: center; padding: 50px;">
-                    <h2>🎮 Loyalty Platform</h2>
-                    <p>Código: ${window.currentQRCode}</p>
-                    <img src="${canvas.toDataURL()}" style="max-width: 400px;">
-                    <p style="margin-top: 20px;">Escanea para jugar y ganar premios</p>
-                </body>
-                </html>
-            `);
-            setTimeout(() => {
-                win.print();
-                win.close();
-            }, 500);
-        };
-
-        // Cargar al inicio
-        loadStats();
-    </script>
+    <<!-- Firebase -->
+<script type="module">
+    import { loadStats, generateQR, downloadQR, printQR } from '../js/qr-generator.js';
+    
+    // Hacer funciones accesibles globalmente
+    window.generateQR = generateQR;
+    window.downloadQR = downloadQR;
+    window.printQR = printQR;
+    
+    // Cargar al inicio
+    loadStats();
+</script>
 </body>
 </html>
